@@ -1,0 +1,26 @@
+{
+  "name": "우리팀 일정 캘린더",
+  "short_name": "팀일정",
+  "description": "팀장·인사·감찰·교육·안전이 함께 작성하고 실시간으로 확인하는 공유 일정 캘린더",
+  "lang": "ko-KR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F7FC",
+  "theme_color": "#246BFD",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#246BFD">
+  <meta name="description" content="팀원이 함께 작성하고 실시간으로 확인하는 공유 일정 캘린더">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="우리팀 일정 캘린더">
+  <meta property="og:description" content="팀원이 함께 작성하고 실시간으로 확인하는 공유 일정 캘린더">
+  <meta property="og:image" content="og-image.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <title>우리팀 일정 캘린더</title>
+</head>
+<body>
+  <noscript>이 앱을 사용하려면 JavaScript를 켜주세요.</noscript>
+
+  <div id="app" class="app-shell">
+    <section id="authView" class="auth-view" aria-labelledby="authTitle">
+      <div class="auth-brand">
+        <img class="brand-app-icon brand-app-icon-large" src="icons/icon-192.png" alt="" aria-hidden="true">
+        <p class="eyebrow">TEAM SCHEDULE</p>
+        <h1 id="authTitle">우리팀 일정 캘린더</h1>
+        <p>팀장·인사·감찰·교육·안전이 등록한 일정을 한눈에 보고, 변경 사항을 실시간으로 공유하세요.</p>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="로그인 방식">
+          <button id="loginTab" class="auth-tab is-active" type="button" role="tab" aria-selected="true">로그인</button>
+          <button id="signupTab" class="auth-tab" type="button" role="tab" aria-selected="false">팀원 등록</button>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <div id="nameField" class="field is-hidden">
+            <label for="displayName">담당 구분</label>
+            <select id="displayName" name="displayName" disabled>
+              <option value="팀장">팀장 · Red</option>
+              <option value="인사">인사 · Blue</option>
+              <option value="감찰">감찰 · Green</option>
+              <option value="교육">교육 · Orange</option>
+              <option value="안전">안전 · Purple</option>
+            </select>
+            <p class="field-help">한 담당은 한 계정만 등록하세요. 색상은 담당별로 자동 지정됩니다.</p>
+          </div>
+
+          <div class="field">
+            <label for="email">이메일</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="name@example.com">
+          </div>
+
+          <div class="field">
+            <label for="password">비밀번호</label>
+            <input id="password" name="password" type="password" minlength="6" autocomplete="current-password" required placeholder="6자 이상">
+          </div>
+          <div id="colorField" class="is-hidden"><div id="signupColorPicker"></div></div>
+
+          <button id="authSubmit" class="button button-primary button-block" type="submit">로그인</button>
+          <button id="resetPasswordButton" class="text-button" type="button">비밀번호 재설정 메일 받기</button>
+          <p id="authMessage" class="form-message" aria-live="polite"></p>
+        </form>
+
+        <div id="demoNotice" class="demo-notice is-hidden">
+          <strong>데모 모드</strong>
+          <span>Supabase를 연결하기 전에는 이 브라우저에만 일정이 저장됩니다.</span>
+          <button id="enterDemoButton" class="button button-soft" type="button">데모 화면 열기</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="calendarView" class="calendar-view is-hidden" aria-label="팀 일정 캘린더">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="sidebarToggle" class="icon-button mobile-only" type="button" aria-label="팀원 필터 열기" aria-controls="sidebar" aria-expanded="false">
+            <span class="menu-icon" aria-hidden="true"></span>
+          </button>
+          <div class="app-brand">
+            <img class="brand-app-icon brand-app-icon-small" src="icons/icon-192.png" alt="" aria-hidden="true">
+            <div>
+              <strong id="appName">우리팀 일정 캘린더</strong>
+              <span id="teamName">공유 일정</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-controls" aria-label="달력 이동">
+          <button id="todayButton" class="button button-ghost" type="button">오늘</button>
+          <div class="nav-buttons">
+            <button id="prevMonthButton" class="icon-button" type="button" aria-label="이전 달">‹</button>
+            <button id="nextMonthButton" class="icon-button" type="button" aria-label="다음 달">›</button>
+          </div>
+          <h2 id="currentMonthLabel" tabindex="-1"></h2>
+        </div>
+
+        <div class="topbar-actions">
+          <label class="search-box" for="searchInput">
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="일정 검색" autocomplete="off">
+          </label>
+          <button id="installAppButton" class="button button-soft install-button" type="button"><span aria-hidden="true">↓</span> 앱 설치</button>
+          <button id="addEventButton" class="button button-primary" type="button"><span aria-hidden="true">＋</span> 일정 추가</button>
+          <div class="user-menu">
+            <button id="userMenuButton" class="user-button" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span id="userAvatar" class="avatar">팀</span>
+              <span id="userName" class="user-name">팀원</span>
+              <span aria-hidden="true">⌄</span>
+            </button>
+            <div id="userMenuPanel" class="user-menu-panel is-hidden" role="menu">
+              <button id="editProfileButton" type="button" role="menuitem">내 담당 변경</button>
+              <button id="logoutButton" type="button" role="menuitem">로그아웃</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside id="sidebar" class="sidebar" aria-label="담당별 일정 필터">
+          <button id="mobileSidebarClose" class="icon-button sidebar-close mobile-only" type="button" aria-label="필터 닫기">×</button>
+
+          <section class="sidebar-section mini-calendar-section">
+            <div class="section-title-row">
+              <h3 id="miniMonthLabel"></h3>
+              <div class="mini-nav">
+                <button id="miniPrevButton" type="button" aria-label="미니 달력 이전 달">‹</button>
+                <button id="miniNextButton" type="button" aria-label="미니 달력 다음 달">›</button>
+              </div>
+            </div>
+            <div id="miniCalendar" class="mini-calendar" aria-label="미니 달력"></div>
+          </section>
+
+          <section class="sidebar-section">
+            <div class="section-title-row">
+              <h3>담당별 일정</h3>
+              <button id="selectAllMembersButton" class="text-button compact" type="button">전체</button>
+            </div>
+            <div id="memberFilters" class="member-filters"></div>
+          </section>
+
+          <section class="sidebar-section upcoming-section">
+            <div class="section-title-row">
+              <h3>다가오는 일정</h3>
+              <span id="upcomingCount" class="count-badge">0</span>
+            </div>
+            <div id="upcomingList" class="upcoming-list"></div>
+          </section>
+
+          <div id="syncStatus" class="sync-status" aria-live="polite">
+            <span class="status-dot"></span>
+            <span>연결 확인 중</span>
+          </div>
+        </aside>
+
+        <main class="calendar-main">
+          <div class="calendar-toolbar-mobile mobile-only">
+            <button id="mobileTodayButton" class="button button-ghost" type="button">오늘</button>
+            <div class="mobile-month-nav">
+              <button id="mobilePrevButton" class="icon-button" type="button" aria-label="이전 달">‹</button>
+              <strong id="mobileMonthLabel"></strong>
+              <button id="mobileNextButton" class="icon-button" type="button" aria-label="다음 달">›</button>
+            </div>
+          </div>
+
+          <div class="calendar-card">
+            <div class="weekday-row" aria-hidden="true">
+              <div class="sunday">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="saturday">토</div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="월간 일정"></div>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop is-hidden" aria-hidden="true"></div>
+
+  <section id="eventModal" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+    <form id="eventForm" class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">TEAM EVENT</p>
+          <h2 id="eventModalTitle">일정 추가</h2>
+        </div>
+        <button id="eventModalClose" class="icon-button" type="button" aria-label="일정 창 닫기">×</button>
+      </div>
+
+      <input id="eventId" type="hidden">
+
+      <div class="field">
+        <label for="eventTitle">일정 제목</label>
+        <input id="eventTitle" type="text" maxlength="80" required placeholder="예: 예산안 검토 회의">
+      </div>
+
+      <div class="form-grid two-columns">
+        <div class="field">
+          <label for="eventMember">담당 구분</label>
+          <select id="eventMember" required></select>
+        </div>
+        <div class="field">
+          <label for="eventCategory">일정 구분</label>
+          <select id="eventCategory">
+            <option value="업무">업무</option>
+            <option value="회의">회의</option>
+            <option value="출장">출장</option>
+            <option value="교육">교육</option>
+            <option value="휴가">휴가</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid two-columns">
+        <div class="field">
+          <label for="startDate">시작일</label>
+          <input id="startDate" type="date" required>
+        </div>
+        <div class="field">
+          <label for="endDate">종료일</label>
+          <input id="endDate" type="date" required>
+        </div>
+      </div>
+
+      <label class="switch-row">
+        <input id="allDay" type="checkbox" checked>
+        <span class="switch-control" aria-hidden="true"></span>
+        <span>종일 일정</span>
+      </label>
+
+      <div id="timeFields" class="form-grid two-columns is-hidden">
+        <div class="field">
+          <label for="startTime">시작 시간</label>
+          <input id="startTime" type="time" value="09:00">
+        </div>
+        <div class="field">
+          <label for="endTime">종료 시간</label>
+          <input id="endTime" type="time" value="10:00">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="eventLocation">장소</label>
+        <input id="eventLocation" type="text" maxlength="80" placeholder="예: 3층 회의실">
+      </div>
+
+      <div class="field">
+        <label for="eventNotes">메모</label>
+        <textarea id="eventNotes" rows="4" maxlength="500" placeholder="준비사항이나 참고 내용을 입력하세요."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button id="deleteEventButton" class="button button-danger is-hidden" type="button">삭제</button>
+        <div class="modal-actions-right">
+          <button id="eventCancelButton" class="button button-ghost" type="button">취소</button>
+          <button id="eventSaveButton" class="button button-primary" type="submit">저장</button>
+        </div>
+      </div>
+      <p id="eventFormMessage" class="form-message" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="profileModal" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+    <form id="profileForm" class="modal-card modal-card-small">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">MY PROFILE</p>
+          <h2 id="profileModalTitle">내 정보 변경</h2>
+        </div>
+        <button id="profileModalClose" class="icon-button" type="button" aria-label="내 정보 창 닫기">×</button>
+      </div>
+      <div class="field">
+        <label for="profileName">담당 구분</label>
+        <select id="profileName" required>
+          <option value="팀장">팀장</option>
+          <option value="인사">인사</option>
+          <option value="감찰">감찰</option>
+          <option value="교육">교육</option>
+          <option value="안전">안전</option>
+        </select>
+        <p class="field-help">담당을 바꾸면 담당 색상도 자동으로 변경됩니다.</p>
+      </div>
+      <div class="field is-hidden"><div id="profileColorPicker"></div></div>
+      <div class="modal-actions modal-actions-end">
+        <button id="profileCancelButton" class="button button-ghost" type="button">취소</button>
+        <button class="button button-primary" type="submit">변경 저장</button>
+      </div>
+      <p id="profileFormMessage" class="form-message" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
