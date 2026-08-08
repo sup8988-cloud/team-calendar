@@ -543,7 +543,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 @media (max-width: 1180px) {
   .topbar { grid-template-columns: minmax(170px, .75fr) minmax(300px, 1fr) minmax(260px, .9fr); gap: 14px; padding-inline: 18px; }
   .search-box { display: none; }
-  .user-name { display: none; }
   .workspace { grid-template-columns: 246px minmax(0, 1fr); }
   .calendar-main { padding: 18px; }
   .calendar-grid { min-height: calc(100vh - 142px); }
@@ -568,6 +567,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   .topbar-actions > .button-primary { width: 44px; padding: 0; font-size: 0; }
   .topbar-actions > .button-primary span { font-size: 22px; }
   .user-button > span:last-child { display: none; }
+  .user-name { display: none; }
   .workspace { display: block; min-height: calc(100vh - 68px); }
   .sidebar {
     position: fixed;
