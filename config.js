@@ -13,8 +13,7 @@ window.APP_CONFIG = {
 
   // 처음 5개 담당 계정을 만들 때만 true.
   // 팀장·인사·감찰·교육·안전 계정 등록을 마친 뒤 false로 바꾸세요.
-  ALLOW_SIGN_UP: true,
-
+ALLOW_SIGN_UP: false,
   // Supabase 연결 전 UI를 시험해 보는 데모 버튼
   ENABLE_DEMO: true
 };
