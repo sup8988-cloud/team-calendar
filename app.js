@@ -539,12 +539,9 @@ function createEventChip(event, dateString) {
   time.textContent = event.all_day ? "종일" : String(event.start_time || "").slice(0, 5);
   const title = document.createElement("span");
   title.className = "event-title";
-  title.textContent = event.title;
-  const member = document.createElement("span");
-  member.className = "event-member";
-  member.textContent = profile.display_name;
-
-  chip.append(dot, time, title, member);
+  title.textContent = `${event.title} (${profile.display_name})`;
+  
+  chip.append(dot, time, title);
   chip.addEventListener("click", (clickEvent) => {
     clickEvent.stopPropagation();
     openExistingEvent(event);
