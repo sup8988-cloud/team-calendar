@@ -265,21 +265,22 @@
       <div class="modal-header">
         <div>
           <p class="eyebrow">MY PROFILE</p>
-          <h2 id="profileModalTitle">내 정보 변경</h2>
+          <h2 id="profileModalTitle">내 이름 변경</h2>
         </div>
         <button id="profileModalClose" class="icon-button" type="button" aria-label="내 정보 창 닫기">×</button>
       </div>
-      <div class="field">
-        <label for="profileName">담당 구분</label>
-        <select id="profileName" required>
-          <option value="팀장">팀장</option>
-          <option value="인사">인사</option>
-          <option value="감찰">감찰</option>
-          <option value="교육">교육</option>
-          <option value="안전">안전</option>
-        </select>
-        <p class="field-help">담당을 바꾸면 담당 색상도 자동으로 변경됩니다.</p>
-      </div>
+     <div class="field">
+  <label for="profileName">이름</label>
+  <input
+    id="profileName"
+    type="text"
+    maxlength="30"
+    autocomplete="name"
+    placeholder="예: 홍길동"
+    required
+  >
+  <p class="field-help">담당은 고정되며 이름만 변경할 수 있습니다.</p>
+</div>
       <div class="field is-hidden"><div id="profileColorPicker"></div></div>
       <div class="modal-actions modal-actions-end">
         <button id="profileCancelButton" class="button button-ghost" type="button">취소</button>
