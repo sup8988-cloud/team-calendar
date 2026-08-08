@@ -1,9 +1,10 @@
-const CACHE_NAME = "team-calendar-v2.0.0";
+const CACHE_NAME = "team-calendar-v2.1.0";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
+  "./password-change.js",
   "./manifest.json",
   "./og-image.png",
   "./icons/icon-192.png",
