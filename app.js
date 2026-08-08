@@ -304,8 +304,17 @@ function showCalendarView() {
 }
 
 function updateCurrentUserUI() {
-  const profile = state.profile || { display_name: "담당", color: COLOR_PALETTE[0] };
-  elements.userName.textContent = profile.display_name;
+  const profile = state.profile || {
+    display_name: "담당",
+    full_name: "",
+    color: COLOR_PALETTE[0]
+  };
+
+  const label = profile.full_name
+    ? `${profile.display_name} · ${profile.full_name}`
+    : profile.display_name;
+
+  elements.userName.textContent = label;
   elements.userAvatar.textContent = getInitials(profile.display_name);
   elements.userAvatar.style.background = `${profile.color}1f`;
   elements.userAvatar.style.color = profile.color;
@@ -627,8 +636,10 @@ function openProfileModal() {
   elements.userMenuPanel.classList.add("is-hidden");
   elements.userMenuButton.setAttribute("aria-expanded", "false");
   showProfileMessage("");
-  elements.profileName.value = state.profile?.display_name || "";
-  state.profileColor = ROLE_COLOR[elements.profileName.value] || state.profile?.color || COLOR_PALETTE[0];
+
+  elements.profileName.value = state.profile?.full_name || "";
+  state.profileColor = state.profile?.color || COLOR_PALETTE[0];
+
   openModal(elements.profileModal);
   window.setTimeout(() => elements.profileName.focus(), 20);
 }
@@ -892,7 +903,7 @@ async function sendPasswordReset() {
 async function loadProfiles() {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_name, color, created_at")
+    .select("id, display_name, full_name, color, created_at")
     .order("display_name", { ascending: true });
   if (error) throw error;
   state.profiles = data || [];
@@ -915,7 +926,7 @@ async function loadProfiles() {
 async function loadEvents() {
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, member_id, category, start_date, end_date, all_day, start_time, end_time, location, notes, color, created_by, created_at, updated_at, profiles:profiles!events_member_id_fkey(id, display_name, color)")
+    .select("id, title, member_id, category, start_date, end_date, all_day, start_time, end_time, location, notes, color, created_by, created_at, updated_at, profiles:profiles!events_member_id_fkey(id, display_name, full_name, color)")
     .order("start_date", { ascending: true })
     .order("start_time", { ascending: true, nullsFirst: true });
   if (error) throw error;
@@ -999,37 +1010,52 @@ function subscribeRealtime() {
 async function saveProfile(event) {
   event.preventDefault();
   showProfileMessage("");
-  const displayName = elements.profileName.value.trim();
-  if (!ROLE_COLOR[displayName]) {
-    showProfileMessage("담당 구분을 선택해주세요.");
+
+  const fullName = elements.profileName.value.trim();
+
+  if (!fullName) {
+    showProfileMessage("이름을 입력해주세요.");
     return;
   }
-  state.profileColor = ROLE_COLOR[displayName];
+
+  if (fullName.length > 30) {
+    showProfileMessage("이름은 30자 이내로 입력해주세요.");
+    return;
+  }
 
   const submitButton = elements.profileForm.querySelector('button[type="submit"]');
   setBusy(submitButton, true, "저장 중…");
+
   try {
     if (state.demoMode) {
-      state.profile.display_name = displayName;
-      state.profile.color = state.profileColor;
-      state.profiles = state.profiles.map((profile) => profile.id === state.profile.id ? { ...state.profile } : profile);
-      state.events = state.events.map((item) => item.member_id === state.profile.id ? { ...item, color: state.profileColor } : item);
-      saveDemoEvents();
+      state.profile.full_name = fullName;
+      state.profiles = state.profiles.map((profile) =>
+        profile.id === state.profile.id ? { ...state.profile } : profile
+      );
     } else {
       const { error } = await supabase
         .from("profiles")
-        .update({ display_name: displayName, color: state.profileColor, updated_at: new Date().toISOString() })
+        .update({ full_name: fullName })
         .eq("id", state.user.id);
+
       if (error) throw error;
+
       await loadProfiles();
     }
+
     updateCurrentUserUI();
     renderAll();
     closeModal(elements.profileModal);
-    toast("담당 구분을 변경했습니다", "담당 색상도 함께 반영되었습니다.");
+
+    toast(
+      "이름을 변경했습니다",
+      `${state.profile?.display_name || "담당"} 담당은 그대로 유지됩니다.`
+    );
   } catch (error) {
     console.error(error);
-    showProfileMessage(humanizeError(error, "내 정보를 변경하지 못했습니다."));
+    showProfileMessage(
+      humanizeError(error, "이름을 변경하지 못했습니다.")
+    );
   } finally {
     setBusy(submitButton, false);
   }
