@@ -125,6 +125,7 @@ const state = {
   profile: null,
   profiles: [],
   events: [],
+  holidays: [],
   currentMonth: new Date(today.getFullYear(), today.getMonth(), 1),
   miniMonth: new Date(today.getFullYear(), today.getMonth(), 1),
   selectedDate: toDateString(today),
@@ -464,6 +465,7 @@ function renderCalendar() {
     const date = addDays(gridStart, index);
     const dateString = toDateString(date);
     const dayEvents = eventsOnDate(dateString);
+    const holiday = state.holidays.find((item) => item.date === dateString);
     const cell = document.createElement("div");
     cell.className = "day-cell";
     cell.setAttribute("role", "gridcell");
@@ -472,6 +474,7 @@ function renderCalendar() {
     if (sameDate(date, today)) cell.classList.add("is-today");
     if (date.getDay() === 0) cell.classList.add("is-sunday");
     if (date.getDay() === 6) cell.classList.add("is-saturday");
+    if (holiday) cell.classList.add("is-holiday");
     if (dateString === state.selectedDate) cell.classList.add("is-selected");
 
     const header = document.createElement("div");
@@ -491,8 +494,17 @@ function renderCalendar() {
     header.append(number, addButton);
 
     const eventsContainer = document.createElement("div");
-    eventsContainer.className = "day-events";
-    const maxVisible = 3;
+eventsContainer.className = "day-events";
+
+if (holiday) {
+  const holidayChip = document.createElement("div");
+  holidayChip.className = "holiday-chip";
+  holidayChip.textContent = holiday.name;
+  holidayChip.setAttribute("aria-label", `공휴일 ${holiday.name}`);
+  eventsContainer.append(holidayChip);
+}
+
+const maxVisible = holiday ? 2 : 3;
     dayEvents.slice(0, maxVisible).forEach((event) => {
       eventsContainer.append(createEventChip(event, dateString));
     });
@@ -929,13 +941,31 @@ async function loadEvents() {
   if (error) throw error;
   state.events = data || [];
 }
+async function loadHolidays() {
+  if (!supabase || state.demoMode) {
+    state.holidays = [];
+    return;
+  }
 
+  const year = state.currentMonth.getFullYear();
+  const month = state.currentMonth.getMonth() + 1;
+
+  const { data, error } = await supabase.functions.invoke("korea-holidays", {
+    body: { year, month }
+  });
+
+  if (error) throw error;
+
+  state.holidays = Array.isArray(data?.holidays)
+    ? data.holidays
+    : [];
+}
 async function enterLiveApp(session) {
   state.demoMode = false;
   state.user = session.user;
   setSyncStatus("", "일정 불러오는 중");
   try {
-    await Promise.all([loadProfiles(), loadEvents()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadHolidays()]);
     state.selectedMembers.clear();
     showCalendarView();
     subscribeRealtime();
@@ -1071,17 +1101,33 @@ async function logout() {
   if (error) toast("로그아웃 실패", error.message, "error");
 }
 
-function shiftCurrentMonth(amount) {
+async function shiftCurrentMonth(amount) {
   state.currentMonth = addMonths(state.currentMonth, amount);
   state.miniMonth = new Date(state.currentMonth);
+
+  try {
+    await loadHolidays();
+  } catch (error) {
+    console.error("공휴일 조회 실패:", error);
+    state.holidays = [];
+  }
+
   renderAll();
   elements.currentMonthLabel.focus({ preventScroll: true });
 }
 
-function goToday() {
+async function goToday() {
   state.currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   state.miniMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   state.selectedDate = toDateString(today);
+
+  try {
+    await loadHolidays();
+  } catch (error) {
+    console.error("공휴일 조회 실패:", error);
+    state.holidays = [];
+  }
+
   renderAll();
 }
 
