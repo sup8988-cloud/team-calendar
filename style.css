@@ -442,6 +442,29 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .day-cell.is-today .day-number { background: var(--primary); color: white; font-weight: 850; box-shadow: 0 6px 14px rgba(49, 87, 213, .22); }
 .day-cell.is-sunday:not(.is-today) .day-number { color: #d55368; }
 .day-cell.is-saturday:not(.is-today) .day-number { color: #3d6bcf; }
+.day-cell.is-holiday:not(.is-today) .day-number {
+  color: var(--danger);
+}
+
+.holiday-chip {
+  min-width: 0;
+  width: 100%;
+  min-height: 25px;
+  display: flex;
+  align-items: center;
+  padding: 3px 7px;
+  border: 1px solid #ffc7cc;
+  border-left: 3px solid var(--danger);
+  border-radius: 6px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .day-add {
   width: 25px; height: 25px; opacity: 0; border: 0; border-radius: 8px; background: var(--primary-soft); color: var(--primary); font-size: 17px; line-height: 1;
 }
@@ -612,6 +635,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 }
   .event-chip { padding: 4px 3px; gap: 3px; min-width: 0; height: auto; }
   .event-title { font-size: 10px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
+  .holiday-chip { padding: 4px 3px; min-height: 0; height: auto; font-size: 9px; line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
   .calendar-card { overscroll-behavior-x: contain; }
   .modal { place-items: end center; padding: 0; }
   .modal-card { width: 100%; max-height: 92vh; padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; }
